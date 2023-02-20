@@ -1,0 +1,42 @@
+version: '3.5'
+
+services:
+  postgres:
+    container_name: postgres_container_hasura
+    image: postgres
+    environment:
+      POSTGRES_USER: test
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: hasura_talk
+      PGDATA: /data/postgres
+    volumes:
+      - postgres:/data/postgres
+    ports:
+      - '5432:5432'
+    networks:
+      - postgres
+    restart: unless-stopped
+
+  hasura:
+    container_name: hasura_container
+    image: hasura/graphql-engine:v1.3.3
+    environment:
+      HASURA_GRAPHQL_DATABASE_URL: postgres://postgres:postgres@postgres:5432/db
+      HASURA_GRAPHQL_ENABLE_CONSOLE: 'true'
+      HASURA_GRAPHQL_DEV_MODE: 'true'
+      HASURA_GRAPHQL_ENABLED_LOG_TYPES: startup, http-log, webhook-log, websocket-log, query-log
+      HASURA_GRAPHQL_ADMIN_SECRET: testkey
+    ports:
+      - '8080:8080'
+    depends_on:
+      - 'postgres'
+    networks:
+      - postgres
+    restart: unless-stopped
+
+networks:
+  postgres:
+    driver: bridge
+
+volumes:
+  postgres:
